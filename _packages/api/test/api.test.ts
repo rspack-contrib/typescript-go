@@ -16,7 +16,7 @@ import {
     isCallExpression,
     isPropertyAccessExpression,
     isIdentifier,
-    isStringLiteral,
+    isArrowFunction,
 } from "@typescript/ast";
 import assert from "node:assert";
 import {
@@ -161,7 +161,8 @@ test("Function", () => {
     const currentFiles = {
         "/tsconfig.json": "{}",
         "/src/index.ts": `function foo() {
-            console.log("hello", "world")
+            console.log("hello", "world");
+            () => "1";
         }`,
     };
     
@@ -194,6 +195,13 @@ test("Function", () => {
     assert.ok(isStringLiteral(arg1));
     assert.equal(arg0.text, "hello");
     assert.equal(arg1.text, "world");
+
+    let arrow_expr = body.statements[1]!;
+    assert.ok(isExpressionStatement(arrow_expr));
+    let arrow = arrow_expr.expression;
+    assert.ok(isArrowFunction(arrow));
+    assert.ok(isStringLiteral(arrow.body));
+    assert.equal(arrow.body.text, "1");
 });
 
 test("Benchmarks", async () => {
